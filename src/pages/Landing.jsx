@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { SERVICE_CATEGORIES } from '../lib/categories'
+import { SEGMENTS, getCategoriesBySegment } from '../lib/categories'
 
 const STEPS_WORKER = [
   { n: '01', title: 'Crie seu perfil', desc: 'Cadastre habilidades e disponibilidade em menos de 2 minutos. Zero burocracia.' },
@@ -147,7 +147,7 @@ export default function Landing() {
         <div style={{ ...S.maxW, padding: '48px 24px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '24px', textAlign: 'center' }}>
             {[
-              { value: '30+', label: 'Categorias de serviço' },
+              { value: '100+', label: 'Categorias de serviço' },
               { value: 'R$0', label: 'Para se cadastrar' },
               { value: '100%', label: 'Direto com o profissional' },
             ].map(s => (
@@ -160,27 +160,43 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* ── CATEGORIAS ── */}
+      {/* ── CATEGORIAS POR SEGMENTO ── */}
       <section style={{ backgroundColor: '#fff', padding: '80px 0' }}>
         <div style={S.maxW}>
           <div style={{ marginBottom: '48px' }}>
             <span style={S.sectionLabel}>Serviços</span>
             <h2 style={S.h2}>Que tipo de trampo<br />você precisa?</h2>
-            <p style={{ ...S.sub, maxWidth: '480px' }}>30 categorias disponíveis. Do pedreiro ao advogado.</p>
+            <p style={{ ...S.sub, maxWidth: '480px' }}>100+ categorias em 11 segmentos. Do pedreiro ao advogado.</p>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '12px' }}>
-            {SERVICE_CATEGORIES.map(cat => (
-              <div key={cat.id} className="qt-card" style={{
-                padding: '16px 12px', textAlign: 'center', cursor: 'pointer',
-                transition: 'all 200ms ease',
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = '#FF6B00'; e.currentTarget.style.backgroundColor = '#fff7f0' }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E5E5'; e.currentTarget.style.backgroundColor = '#fff' }}
-              >
-                <div style={{ fontSize: '32px', marginBottom: '8px' }}>{cat.icon}</div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#000', lineHeight: 1.3 }}>{cat.label}</div>
-              </div>
-            ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+            {SEGMENTS.map(seg => {
+              const cats = getCategoriesBySegment(seg.id)
+              return (
+                <div key={seg.id}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+                    <span style={{ fontSize: '20px' }}>{seg.icon}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1.5px', color: seg.color }}>
+                      {seg.label}
+                    </span>
+                    <div style={{ flex: 1, height: '1px', backgroundColor: '#E5E5E5', marginLeft: '8px' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+                    {cats.map(cat => (
+                      <div key={cat.id} className="qt-card" style={{
+                        padding: '12px', textAlign: 'center', cursor: 'pointer',
+                        transition: 'all 150ms ease',
+                      }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = seg.color; e.currentTarget.style.backgroundColor = `${seg.color}10` }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = '#E5E5E5'; e.currentTarget.style.backgroundColor = '#fff' }}
+                      >
+                        <div style={{ fontSize: '24px', marginBottom: '6px' }}>{cat.icon}</div>
+                        <div style={{ fontSize: '11px', fontWeight: 600, color: '#000', lineHeight: 1.3 }}>{cat.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
       </section>

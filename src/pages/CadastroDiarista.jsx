@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { SERVICE_CATEGORIES } from '../lib/categories'
 import { supabase } from '../lib/supabase'
 import CitySearch from '../components/CitySearch'
+import { SEGMENTS, getCategoriesBySegment } from '../lib/categories'
 
 const STEP_LABELS = ['Dados pessoais', 'Habilidades', 'Perfil']
 
@@ -223,25 +224,51 @@ export default function CadastroDiarista() {
           {/* ── STEP 2 ── */}
           {step === 2 && (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
-                {SERVICE_CATEGORIES.map(cat => {
-                  const sel = form.categorias.includes(cat.id)
+              <div style={{ maxHeight: '420px', overflowY: 'auto', paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {SEGMENTS.map(seg => {
+                  const cats = getCategoriesBySegment(seg.id)
+                  const selCount = cats.filter(c => form.categorias.includes(c.id)).length
                   return (
-                    <button key={cat.id} type="button" onClick={() => toggleCategory(cat.id)}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: '8px',
-                        padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
-                        border: sel ? '2px solid #000' : '1.5px solid #E5E5E5',
-                        backgroundColor: sel ? '#000' : '#fff',
-                        color: sel ? '#fff' : '#545454',
-                        cursor: 'pointer', transition: 'all 150ms', textAlign: 'left',
-                      }}>
-                      <span style={{ fontSize: '18px' }}>{cat.icon}</span>
-                      <span style={{ lineHeight: 1.3 }}>{cat.label}</span>
-                    </button>
+                    <div key={seg.id}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '8px' }}>
+                        <span style={{ fontSize: '14px' }}>{seg.icon}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px', color: seg.color }}>
+                          {seg.label}
+                        </span>
+                        {selCount > 0 && (
+                          <span style={{ fontSize: '11px', fontWeight: 700, backgroundColor: seg.color, color: '#fff', borderRadius: '10px', padding: '1px 7px', marginLeft: '4px' }}>
+                            {selCount}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                        {cats.map(cat => {
+                          const sel = form.categorias.includes(cat.id)
+                          return (
+                            <button key={cat.id} type="button" onClick={() => toggleCategory(cat.id)}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '8px',
+                                padding: '8px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 600,
+                                border: sel ? `2px solid ${seg.color}` : '1.5px solid #E5E5E5',
+                                backgroundColor: sel ? seg.color : '#fff',
+                                color: sel ? '#fff' : '#545454',
+                                cursor: 'pointer', transition: 'all 120ms', textAlign: 'left',
+                              }}>
+                              <span style={{ fontSize: '16px', flexShrink: 0 }}>{cat.icon}</span>
+                              <span style={{ lineHeight: 1.3 }}>{cat.label}</span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
                   )
                 })}
               </div>
+              {form.categorias.length > 0 && (
+                <p style={{ fontSize: '12px', color: '#545454', fontWeight: 600 }}>
+                  {form.categorias.length} categoria{form.categorias.length > 1 ? 's' : ''} selecionada{form.categorias.length > 1 ? 's' : ''}
+                </p>
+              )}
               {error && <p style={{ fontSize: '13px', color: '#dc2626' }}>{error}</p>}
               <div style={{ display: 'flex', gap: '12px' }}>
                 <button type="button" onClick={() => { setStep(1); setError('') }}
