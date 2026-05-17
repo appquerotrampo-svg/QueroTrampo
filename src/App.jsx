@@ -6,13 +6,22 @@ import CadastroDiarista from './pages/CadastroDiarista'
 import CadastroSolicitante from './pages/CadastroSolicitante'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import Admin from './pages/Admin'
 
-const PAGES_WITHOUT_NAVBAR = ['/cadastro/', '/login', '/dashboard']
+const PAGES_WITHOUT_NAVBAR = ['/cadastro/', '/login', '/dashboard', '/admin']
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
   if (loading) return null
   if (!user) return <Navigate to="/login" replace />
+  return children
+}
+
+function AdminRoute({ children }) {
+  const { user, profile, loading } = useAuth()
+  if (loading) return null
+  if (!user) return <Navigate to="/login" replace />
+  if (profile && profile.role !== 'admin') return <Navigate to="/dashboard" replace />
   return children
 }
 
@@ -30,6 +39,9 @@ function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={
           <ProtectedRoute><Dashboard /></ProtectedRoute>
+        } />
+        <Route path="/admin/*" element={
+          <AdminRoute><Admin /></AdminRoute>
         } />
       </Routes>
     </>

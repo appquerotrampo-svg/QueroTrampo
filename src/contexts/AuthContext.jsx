@@ -25,8 +25,13 @@ export function AuthProvider({ children }) {
   }, [])
 
   async function loadProfile(userId) {
-    const { data } = await supabase.from('usuarios').select('*').eq('id', userId).single()
-    setProfile(data)
+    const { data: usuario } = await supabase.from('usuarios').select('*').eq('id', userId).single()
+    if (usuario?.tipo === 'diarista') {
+      const { data: diarista } = await supabase.from('diaristas').select('*').eq('usuario_id', userId).single()
+      setProfile({ ...usuario, diarista })
+    } else {
+      setProfile(usuario)
+    }
     setLoading(false)
   }
 

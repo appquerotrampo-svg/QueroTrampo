@@ -18,7 +18,7 @@ export default function Login() {
     setLoading(true)
     setError('')
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({
       email: form.email,
       password: form.senha,
     })
@@ -35,7 +35,9 @@ export default function Login() {
       return
     }
 
-    navigate('/dashboard')
+    // Redireciona admin para /admin
+    const { data: u } = await supabase.from('usuarios').select('role').eq('id', data.user.id).single()
+    navigate(u?.role === 'admin' ? '/admin' : '/dashboard')
   }
 
   async function handleForgotPassword() {
