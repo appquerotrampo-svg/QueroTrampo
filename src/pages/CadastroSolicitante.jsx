@@ -1,17 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-
-const STATES_BR = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
-  'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
-]
+import CitySearch from '../components/CitySearch'
 
 export default function CadastroSolicitante() {
   const navigate = useNavigate()
   const [form, setForm] = useState({
     nome: '', telefone: '', email: '', senha: '',
-    cidade: '', estado: '', tipoPessoa: 'fisica', cnpj: '', nomeEmpresa: '',
+    cidade: '', estado: '', ibgeId: null, lat: null, lng: null,
+    tipoPessoa: 'fisica', cnpj: '', nomeEmpresa: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -44,6 +41,10 @@ export default function CadastroSolicitante() {
       telefone: form.telefone,
       tipo: 'solicitante',
       cidade: form.cidade,
+      estado: form.estado,
+      ibge_id: form.ibgeId,
+      lat: form.lat,
+      lng: form.lng,
       cpf: form.cnpj || null,
     })
 
@@ -157,22 +158,32 @@ export default function CadastroSolicitante() {
               placeholder="Mínimo 6 caracteres" minLength={6} className="qt-input" />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
-            <div>
-              <label className="qt-label">Cidade</label>
-              <input type="text" required value={form.cidade}
-                onChange={e => update('cidade', e.target.value)}
-                placeholder="São Paulo" className="qt-input" />
-            </div>
-            <div>
-              <label className="qt-label">UF</label>
-              <select required value={form.estado}
-                onChange={e => update('estado', e.target.value)}
-                className="qt-input" style={{ width: '80px' }}>
-                <option value="">--</option>
-                {STATES_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-              </select>
-            </div>
+          <div>
+            <label className="qt-label">Cidade</label>
+            <CitySearch
+              required
+              value={form.cidade ? { nome: form.cidade, estado: form.estado } : null}
+              onChange={city => {
+                if (city) {
+                  update('cidade', city.nome)
+                  update('estado', city.estado)
+                  update('ibgeId', city.id)
+                  update('lat', city.lat)
+                  update('lng', city.lng)
+                } else {
+                  update('cidade', '')
+                  update('estado', '')
+                  update('ibgeId', null)
+                  update('lat', null)
+                  update('lng', null)
+                }
+              }}
+            />
+            {form.estado && (
+              <p style={{ fontSize: '12px', color: '#ABABAB', marginTop: '6px' }}>
+                📍 {form.cidade} — {form.estado}
+              </p>
+            )}
           </div>
 
           {error && (
