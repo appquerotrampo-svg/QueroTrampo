@@ -13,38 +13,77 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 text-xl font-bold" style={{ color: '#1A2744' }}>
-          <span className="text-2xl">💼</span>
-          <span>QueroTrampo</span>
+    <nav style={{
+      backgroundColor: '#fff',
+      borderBottom: '1px solid #E5E5E5',
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      height: '64px',
+      display: 'flex',
+      alignItems: 'center',
+    }}>
+      <div style={{
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '0 24px',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <Link to="/" style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          textDecoration: 'none',
+        }}>
+          <span style={{
+            width: '32px',
+            height: '32px',
+            borderRadius: '8px',
+            backgroundColor: '#FF6B00',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '16px',
+          }}>💼</span>
+          <span style={{
+            fontSize: '18px',
+            fontWeight: '800',
+            color: '#000',
+            letterSpacing: '-0.5px',
+          }}>QueroTrampo</span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {user ? (
             <>
-              <Link to="/dashboard"
-                className="text-sm font-medium px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: '#1A2744', color: '#1A2744' }}>
+              <Link to="/dashboard" style={{
+                fontSize: '14px',
+                fontWeight: '600',
+                color: '#545454',
+                textDecoration: 'none',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                transition: 'color 150ms',
+              }}
+                onMouseEnter={e => e.target.style.color = '#000'}
+                onMouseLeave={e => e.target.style.color = '#545454'}
+              >
                 {profile?.nome?.split(' ')[0] ?? 'Minha conta'}
               </Link>
-              <button onClick={handleSignOut}
-                className="text-sm font-medium px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: '#FF6B00', color: '#FF6B00' }}>
+              <button onClick={handleSignOut} className="qt-btn qt-btn-secondary" style={{ padding: '8px 20px', fontSize: '14px', textTransform: 'none', letterSpacing: 0 }}>
                 Sair
               </button>
             </>
           ) : (
             <>
-              <Link to="/login"
-                className="text-sm font-medium px-4 py-2 rounded-lg border transition-colors"
-                style={{ borderColor: '#FF6B00', color: '#FF6B00' }}>
+              <Link to="/login" className="qt-btn qt-btn-secondary" style={{ padding: '8px 20px', fontSize: '14px', textTransform: 'none', letterSpacing: 0 }}>
                 Entrar
               </Link>
               {isHome && (
-                <Link to="/cadastro/diarista"
-                  className="text-sm font-semibold px-4 py-2 rounded-lg text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#FF6B00' }}>
+                <Link to="/cadastro/diarista" className="qt-btn qt-btn-primary" style={{ padding: '8px 20px', fontSize: '14px' }}>
                   Quero Trampar
                 </Link>
               )}

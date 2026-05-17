@@ -1,11 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
 @import "tailwindcss";
-
-@theme {
-  --color-orange-primary: #FF6B00;
-  --color-blue-dark: #1A2744;
-  --font-family-sans: 'Inter', system-ui, sans-serif;
-}
 
 * {
   box-sizing: border-box;
@@ -15,7 +9,113 @@
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background-color: #f9fafb;
-  color: #1A2744;
+  background-color: #ffffff;
+  color: #000000;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Design tokens */
+:root {
+  --orange: #FF6B00;
+  --dark: #1A2744;
+  --green: #05C46B;
+  --bg: #ffffff;
+  --bg2: #F6F6F6;
+  --border: #E5E5E5;
+  --text: #000000;
+  --text2: #545454;
+  --hint: #ABABAB;
+}
+
+/* Input base */
+.qt-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 16px;
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: #fff;
+  outline: none;
+  transition: border-color 150ms ease;
+  -webkit-appearance: none;
+}
+.qt-input:focus {
+  border-color: #000;
+}
+.qt-input::placeholder {
+  color: var(--hint);
+}
+
+/* Label base */
+.qt-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text2);
+  margin-bottom: 8px;
+}
+
+/* Button base */
+.qt-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 32px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: opacity 150ms ease;
+  border: none;
+  text-decoration: none;
+}
+.qt-btn:hover { opacity: 0.85; }
+.qt-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.qt-btn-primary   { background: #000; color: #fff; }
+.qt-btn-secondary { background: #fff; color: #000; border: 2px solid #000; padding: 14px 30px; }
+.qt-btn-orange    { background: var(--orange); color: #fff; }
+.qt-btn-full      { width: 100%; }
+
+/* Card base */
+.qt-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+.qt-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+
+/* Section label */
+.qt-section-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--orange);
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+select.qt-input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23545454' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 44px;
+  cursor: pointer;
 }

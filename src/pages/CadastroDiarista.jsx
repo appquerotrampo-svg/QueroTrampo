@@ -8,35 +8,30 @@ const STATES_BR = [
   'MG','PA','PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO'
 ]
 
+const STEP_LABELS = ['Dados pessoais', 'Habilidades', 'Perfil']
+
 export default function CadastroDiarista() {
   const navigate = useNavigate()
-  const [step, setStep] = useState(1) // 1 | 2 | 3 | 'confirmacao'
+  const [step, setStep] = useState(1)
   const [form, setForm] = useState({
     nome: '', telefone: '', email: '', senha: '',
-    cidade: '', estado: '', cep: '',
-    categorias: [],
-    valorDiaria: '', bio: '',
+    cidade: '', estado: '', categorias: [], valorDiaria: '', bio: '',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const update = (field, value) => setForm(f => ({ ...f, [field]: value }))
 
-  const toggleCategory = (id) => {
-    setForm(f => ({
-      ...f,
-      categorias: f.categorias.includes(id)
-        ? f.categorias.filter(c => c !== id)
-        : [...f.categorias, id],
-    }))
-  }
+  const toggleCategory = (id) => setForm(f => ({
+    ...f,
+    categorias: f.categorias.includes(id)
+      ? f.categorias.filter(c => c !== id)
+      : [...f.categorias, id],
+  }))
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (form.categorias.length === 0) {
-      setError('Selecione pelo menos uma categoria de serviço.')
-      return
-    }
+    if (form.categorias.length === 0) { setError('Selecione pelo menos uma categoria.'); return }
     setLoading(true)
     setError('')
 
@@ -47,9 +42,7 @@ export default function CadastroDiarista() {
     })
 
     if (authError) {
-      setError(authError.message === 'User already registered'
-        ? 'Este e-mail já está cadastrado.'
-        : authError.message)
+      setError(authError.message === 'User already registered' ? 'Este e-mail já está cadastrado.' : authError.message)
       setLoading(false)
       return
     }
@@ -57,48 +50,36 @@ export default function CadastroDiarista() {
     const userId = authData.user.id
 
     const { error: userError } = await supabase.from('usuarios').insert({
-      id: userId,
-      nome: form.nome,
-      email: form.email,
-      telefone: form.telefone,
-      tipo: 'diarista',
-      cidade: form.cidade,
+      id: userId, nome: form.nome, email: form.email,
+      telefone: form.telefone, tipo: 'diarista', cidade: form.cidade,
     })
-
     if (userError) { setError(userError.message); setLoading(false); return }
 
     const { error: diaError } = await supabase.from('diaristas').insert({
-      usuario_id: userId,
-      categorias: form.categorias,
+      usuario_id: userId, categorias: form.categorias,
       valor_diaria: parseFloat(form.valorDiaria) || null,
       bio: form.bio || null,
     })
-
     if (diaError) { setError(diaError.message); setLoading(false); return }
 
     await supabase.from('carteira').insert({ usuario_id: userId, saldo: 0 })
-
     setLoading(false)
-
-    if (authData.session) {
-      navigate('/dashboard')
-    } else {
-      setStep('confirmacao')
-    }
+    if (authData.session) navigate('/dashboard')
+    else setStep('confirmacao')
   }
 
+  /* ── Tela de confirmação de e-mail ── */
   if (step === 'confirmacao') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
-          <div className="text-5xl mb-4">📧</div>
-          <h2 className="text-xl font-black mb-2" style={{ color: '#1A2744' }}>Confirme seu e-mail</h2>
-          <p className="text-gray-500 text-sm mb-6">
+      <div style={{ minHeight: '100vh', backgroundColor: '#F6F6F6', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+        <div style={{ backgroundColor: '#fff', border: '1px solid #E5E5E5', borderRadius: '12px', padding: '48px', maxWidth: '440px', width: '100%', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '24px' }}>📧</div>
+          <h2 style={{ fontSize: '24px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '12px' }}>Confirme seu e-mail</h2>
+          <p style={{ fontSize: '15px', color: '#545454', lineHeight: 1.6, marginBottom: '32px' }}>
             Enviamos um link de confirmação para <strong>{form.email}</strong>.<br />
             Clique no link para ativar sua conta e começar a trabalhar.
           </p>
-          <Link to="/login" className="inline-block px-6 py-3 rounded-xl font-bold text-white text-sm"
-            style={{ backgroundColor: '#FF6B00' }}>
+          <Link to="/login" className="qt-btn qt-btn-primary qt-btn-full">
             Ir para o Login
           </Link>
         </div>
@@ -106,227 +87,209 @@ export default function CadastroDiarista() {
     )
   }
 
+  /* ── Formulário ── */
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
-      <div className="max-w-lg mx-auto">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-xl font-black mb-6" style={{ color: '#1A2744' }}>
-            <span>💼</span> QueroTrampo
-          </Link>
-          <h1 className="text-2xl font-black mb-1" style={{ color: '#1A2744' }}>Quero Trampar!</h1>
-          <p className="text-gray-500 text-sm">Crie seu perfil e comece a receber chamados hoje.</p>
-        </div>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F6F6F6', display: 'flex' }}>
 
-        {/* Steps indicator */}
-        <div className="flex items-center justify-center gap-2 mb-8">
+      {/* Left panel */}
+      <div style={{ flex: 1, backgroundColor: '#FF6B00', padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}
+        className="hidden md:flex">
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
+          <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px' }}>💼</div>
+          <span style={{ fontSize: '18px', fontWeight: 800, color: '#fff' }}>QueroTrampo</span>
+        </Link>
+        <div>
+          <div style={{ fontSize: '64px', fontWeight: 900, color: '#fff', opacity: 0.15, lineHeight: 1, marginBottom: '8px' }}>$</div>
+          <p style={{ fontSize: '32px', fontWeight: 800, color: '#fff', lineHeight: 1.2, letterSpacing: '-1px', marginBottom: '16px' }}>
+            Dinheiro rápido,<br />trabalho na hora.
+          </p>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '15px', lineHeight: 1.6 }}>
+            Crie seu perfil grátis e comece a receber chamados hoje.
+          </p>
+          {/* Mini depoimento */}
+          <div style={{ marginTop: '40px', backgroundColor: 'rgba(0,0,0,0.15)', borderRadius: '12px', padding: '20px' }}>
+            <p style={{ color: '#fff', fontSize: '14px', lineHeight: 1.6, marginBottom: '12px' }}>
+              "Faço diárias 3x por semana e ganho mais que no emprego fixo."
+            </p>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px' }}>João P. · Diarista em Rio Branco</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Form */}
+      <div style={{ width: '100%', maxWidth: '540px', backgroundColor: '#fff', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '48px 40px', minHeight: '100vh', overflowY: 'auto' }}>
+
+        {/* Mobile logo */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none', marginBottom: '40px' }}
+          className="md:hidden">
+          <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#FF6B00', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>💼</div>
+          <span style={{ fontSize: '16px', fontWeight: 800 }}>QueroTrampo</span>
+        </Link>
+
+        {/* Step header */}
+        <div style={{ marginBottom: '8px' }}>
+          <span style={{ fontSize: '12px', fontWeight: 600, letterSpacing: '1.5px', textTransform: 'uppercase', color: '#FF6B00' }}>
+            Passo {typeof step === 'number' ? step : 3} de 3
+          </span>
+        </div>
+        <h1 style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.5px', marginBottom: '4px' }}>
+          {step === 1 && 'Seus dados'}
+          {step === 2 && 'Suas habilidades'}
+          {step === 3 && 'Seu perfil profissional'}
+        </h1>
+        <p style={{ fontSize: '15px', color: '#545454', marginBottom: '32px' }}>
+          {step === 1 && <>Já tem conta? <Link to="/login" style={{ color: '#FF6B00', fontWeight: 600, textDecoration: 'none' }}>Entrar</Link></>}
+          {step === 2 && 'Selecione todas as categorias em que você trabalha.'}
+          {step === 3 && 'Defina seu valor e conte um pouco sobre você.'}
+        </p>
+
+        {/* Progress bar */}
+        <div style={{ display: 'flex', gap: '6px', marginBottom: '32px' }}>
           {[1, 2, 3].map(s => (
-            <div key={s} className="flex items-center gap-2">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-colors"
-                style={{
-                  backgroundColor: s <= step ? '#FF6B00' : '#e5e7eb',
-                  color: s <= step ? 'white' : '#9ca3af',
-                }}
-              >
-                {s}
-              </div>
-              {s < 3 && <div className="w-8 h-0.5" style={{ backgroundColor: s < step ? '#FF6B00' : '#e5e7eb' }} />}
-            </div>
+            <div key={s} style={{
+              flex: 1, height: '4px', borderRadius: '4px',
+              backgroundColor: s <= step ? '#000' : '#E5E5E5',
+              transition: 'background-color 300ms ease',
+            }} />
           ))}
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-            {/* STEP 1: Dados pessoais */}
-            {step === 1 && (
-              <div className="space-y-4">
-                <h2 className="font-bold text-lg mb-4" style={{ color: '#1A2744' }}>Seus dados</h2>
-
+          {/* ── STEP 1 ── */}
+          {step === 1 && (
+            <>
+              <div>
+                <label className="qt-label">Nome completo</label>
+                <input type="text" required value={form.nome}
+                  onChange={e => update('nome', e.target.value)}
+                  placeholder="João da Silva" className="qt-input" />
+              </div>
+              <div>
+                <label className="qt-label">WhatsApp</label>
+                <input type="tel" required value={form.telefone}
+                  onChange={e => update('telefone', e.target.value)}
+                  placeholder="(11) 99999-9999" className="qt-input" />
+              </div>
+              <div>
+                <label className="qt-label">E-mail</label>
+                <input type="email" required value={form.email}
+                  onChange={e => update('email', e.target.value)}
+                  placeholder="seu@email.com" className="qt-input" />
+              </div>
+              <div>
+                <label className="qt-label">Senha</label>
+                <input type="password" required value={form.senha}
+                  onChange={e => update('senha', e.target.value)}
+                  placeholder="Mínimo 6 caracteres" minLength={6} className="qt-input" />
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '12px' }}>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nome completo *</label>
-                  <input
-                    type="text" required value={form.nome}
-                    onChange={e => update('nome', e.target.value)}
-                    placeholder="João da Silva"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                    style={{ '--tw-ring-color': '#FF6B00' }}
-                  />
+                  <label className="qt-label">Cidade</label>
+                  <input type="text" required value={form.cidade}
+                    onChange={e => update('cidade', e.target.value)}
+                    placeholder="Rio Branco" className="qt-input" />
                 </div>
-
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp *</label>
-                  <input
-                    type="tel" required value={form.telefone}
-                    onChange={e => update('telefone', e.target.value)}
-                    placeholder="(11) 99999-9999"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                  />
+                  <label className="qt-label">UF</label>
+                  <select required value={form.estado}
+                    onChange={e => update('estado', e.target.value)}
+                    className="qt-input" style={{ width: '80px' }}>
+                    <option value="">--</option>
+                    {STATES_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
+                  </select>
                 </div>
+              </div>
+              <button type="button" className="qt-btn qt-btn-primary qt-btn-full"
+                onClick={() => {
+                  if (form.nome && form.telefone && form.email && form.senha && form.cidade && form.estado) setStep(2)
+                  else setError('Preencha todos os campos.')
+                }}>
+                Continuar
+              </button>
+              {error && <p style={{ fontSize: '13px', color: '#dc2626', textAlign: 'center' }}>{error}</p>}
+            </>
+          )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">E-mail *</label>
-                  <input
-                    type="email" required value={form.email}
-                    onChange={e => update('email', e.target.value)}
-                    placeholder="joao@email.com"
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Senha *</label>
-                  <input
-                    type="password" required value={form.senha}
-                    onChange={e => update('senha', e.target.value)}
-                    placeholder="Mínimo 6 caracteres"
-                    minLength={6}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Cidade *</label>
-                    <input
-                      type="text" required value={form.cidade}
-                      onChange={e => update('cidade', e.target.value)}
-                      placeholder="São Paulo"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Estado *</label>
-                    <select
-                      required value={form.estado}
-                      onChange={e => update('estado', e.target.value)}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm bg-white"
-                    >
-                      <option value="">UF</option>
-                      {STATES_BR.map(uf => <option key={uf} value={uf}>{uf}</option>)}
-                    </select>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => { if (form.nome && form.telefone && form.email && form.senha && form.cidade && form.estado) setStep(2) }}
-                  className="w-full py-3 rounded-xl font-bold text-white transition-opacity hover:opacity-90"
-                  style={{ backgroundColor: '#FF6B00' }}
-                >
-                  Continuar →
+          {/* ── STEP 2 ── */}
+          {step === 2 && (
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', maxHeight: '360px', overflowY: 'auto', paddingRight: '4px' }}>
+                {SERVICE_CATEGORIES.map(cat => {
+                  const sel = form.categorias.includes(cat.id)
+                  return (
+                    <button key={cat.id} type="button" onClick={() => toggleCategory(cat.id)}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '10px 12px', borderRadius: '8px', fontSize: '13px', fontWeight: 600,
+                        border: sel ? '2px solid #000' : '1.5px solid #E5E5E5',
+                        backgroundColor: sel ? '#000' : '#fff',
+                        color: sel ? '#fff' : '#545454',
+                        cursor: 'pointer', transition: 'all 150ms', textAlign: 'left',
+                      }}>
+                      <span style={{ fontSize: '18px' }}>{cat.icon}</span>
+                      <span style={{ lineHeight: 1.3 }}>{cat.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+              {error && <p style={{ fontSize: '13px', color: '#dc2626' }}>{error}</p>}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="button" onClick={() => { setStep(1); setError('') }}
+                  className="qt-btn qt-btn-secondary" style={{ flex: 1 }}>
+                  Voltar
+                </button>
+                <button type="button" className="qt-btn qt-btn-primary" style={{ flex: 2 }}
+                  onClick={() => {
+                    if (form.categorias.length === 0) { setError('Selecione pelo menos uma categoria.'); return }
+                    setError(''); setStep(3)
+                  }}>
+                  Continuar
                 </button>
               </div>
-            )}
+            </>
+          )}
 
-            {/* STEP 2: Categorias */}
-            {step === 2 && (
+          {/* ── STEP 3 ── */}
+          {step === 3 && (
+            <>
               <div>
-                <h2 className="font-bold text-lg mb-1" style={{ color: '#1A2744' }}>O que você sabe fazer?</h2>
-                <p className="text-sm text-gray-500 mb-4">Selecione todas as suas habilidades.</p>
-
-                <div className="grid grid-cols-2 gap-2 mb-6 max-h-80 overflow-y-auto pr-1">
-                  {SERVICE_CATEGORIES.map(cat => {
-                    const selected = form.categorias.includes(cat.id)
-                    return (
-                      <button
-                        key={cat.id} type="button"
-                        onClick={() => toggleCategory(cat.id)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-medium transition-all text-left"
-                        style={{
-                          borderColor: selected ? '#FF6B00' : '#e5e7eb',
-                          backgroundColor: selected ? '#fff7f0' : 'white',
-                          color: selected ? '#FF6B00' : '#374151',
-                        }}
-                      >
-                        <span>{cat.icon}</span>
-                        <span className="leading-tight">{cat.label}</span>
-                      </button>
-                    )
-                  })}
+                <label className="qt-label">Valor por diária (R$)</label>
+                <div style={{ position: 'relative' }}>
+                  <span style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#ABABAB', fontWeight: 600, fontSize: '15px' }}>R$</span>
+                  <input type="number" required value={form.valorDiaria}
+                    onChange={e => update('valorDiaria', e.target.value)}
+                    placeholder="150" min="1"
+                    className="qt-input" style={{ paddingLeft: '44px' }} />
                 </div>
-
-                {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep(1)}
-                    className="flex-1 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50">
-                    ← Voltar
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (form.categorias.length === 0) { setError('Selecione pelo menos uma categoria.'); return }
-                      setError('')
-                      setStep(3)
-                    }}
-                    className="flex-1 py-3 rounded-xl font-bold text-white hover:opacity-90"
-                    style={{ backgroundColor: '#FF6B00' }}
-                  >
-                    Continuar →
-                  </button>
-                </div>
+                <p style={{ fontSize: '12px', color: '#ABABAB', marginTop: '6px' }}>Quanto você cobra por dia de trabalho</p>
               </div>
-            )}
-
-            {/* STEP 3: Valor e bio */}
-            {step === 3 && (
-              <div className="space-y-4">
-                <h2 className="font-bold text-lg mb-4" style={{ color: '#1A2744' }}>Seu perfil profissional</h2>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Valor por diária (R$) *</label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-medium">R$</span>
-                    <input
-                      type="number" required value={form.valorDiaria}
-                      onChange={e => update('valorDiaria', e.target.value)}
-                      placeholder="150"
-                      min="1"
-                      className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm"
-                    />
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">Quanto você cobra por dia de trabalho</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Fale sobre você</label>
-                  <textarea
-                    value={form.bio}
-                    onChange={e => update('bio', e.target.value)}
-                    placeholder="Ex: Tenho 5 anos de experiência como pedreiro, trabalho com qualidade e pontualidade..."
-                    rows={4}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 text-sm resize-none"
-                  />
-                </div>
-
-                {error && <p className="text-red-500 text-sm">{error}</p>}
-
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setStep(2)}
-                    className="flex-1 py-3 rounded-xl font-bold border border-gray-200 text-gray-600 hover:bg-gray-50">
-                    ← Voltar
-                  </button>
-                  <button
-                    type="submit" disabled={loading}
-                    className="flex-1 py-3 rounded-xl font-bold text-white hover:opacity-90 disabled:opacity-60"
-                    style={{ backgroundColor: '#FF6B00' }}
-                  >
-                    {loading ? 'Cadastrando...' : 'Criar Perfil 🚀'}
-                  </button>
-                </div>
+              <div>
+                <label className="qt-label">Fale sobre você</label>
+                <textarea value={form.bio}
+                  onChange={e => update('bio', e.target.value)}
+                  placeholder="Ex: 5 anos de experiência como pedreiro, trabalho com qualidade e pontualidade..."
+                  rows={4}
+                  className="qt-input" style={{ resize: 'none', lineHeight: 1.6 }} />
               </div>
-            )}
-          </div>
+              {error && (
+                <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '12px 16px', fontSize: '14px', color: '#dc2626' }}>
+                  {error}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button type="button" onClick={() => { setStep(2); setError('') }}
+                  className="qt-btn qt-btn-secondary" style={{ flex: 1 }}>
+                  Voltar
+                </button>
+                <button type="submit" disabled={loading}
+                  className="qt-btn qt-btn-orange" style={{ flex: 2 }}>
+                  {loading ? 'Cadastrando...' : 'Criar perfil'}
+                </button>
+              </div>
+            </>
+          )}
         </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Já tem conta?{' '}
-          <Link to="/login" className="font-semibold hover:underline" style={{ color: '#FF6B00' }}>
-            Entrar
-          </Link>
-        </p>
       </div>
     </div>
   )
