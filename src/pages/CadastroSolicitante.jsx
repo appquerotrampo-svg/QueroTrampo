@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 const STATES_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
@@ -24,11 +25,44 @@ export default function CadastroSolicitante() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    // TODO: Supabase auth + insert
-    setTimeout(() => {
+
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.senha,
+      options: { data: { nome: form.nome } },
+    })
+
+    if (authError) {
+      setError(authError.message === 'User already registered'
+        ? 'Este e-mail já está cadastrado.'
+        : authError.message)
       setLoading(false)
-      navigate('/')
-    }, 1200)
+      return
+    }
+
+    const userId = authData.user.id
+
+    const { error: userError } = await supabase.from('usuarios').insert({
+      id: userId,
+      nome: form.tipoPessoa === 'juridica' ? form.nomeEmpresa : form.nome,
+      email: form.email,
+      telefone: form.telefone,
+      tipo: 'solicitante',
+      cidade: form.cidade,
+      cpf: form.cnpj || null,
+    })
+
+    if (userError) { setError(userError.message); setLoading(false); return }
+
+    await supabase.from('carteira').insert({ usuario_id: userId, saldo: 0 })
+
+    setLoading(false)
+
+    if (authData.session) {
+      navigate('/dashboard')
+    } else {
+      navigate('/login?confirmacao=1')
+    }
   }
 
   return (

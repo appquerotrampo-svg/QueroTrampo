@@ -1,8 +1,12 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
 
 export default function Login() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const confirmacaoPendente = searchParams.get('confirmacao') === '1'
+
   const [form, setForm] = useState({ email: '', senha: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -13,17 +17,38 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     setError('')
-    // TODO: Supabase signInWithPassword
-    setTimeout(() => {
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: form.email,
+      password: form.senha,
+    })
+
+    if (signInError) {
+      const msg = signInError.message
+      if (msg.includes('Email not confirmed'))
+        setError('Confirme seu e-mail antes de entrar. Verifique sua caixa de entrada.')
+      else if (msg.includes('Invalid login credentials'))
+        setError('E-mail ou senha incorretos.')
+      else
+        setError(msg)
       setLoading(false)
-      setError('Credenciais inválidas. (Supabase ainda não configurado)')
-    }, 800)
+      return
+    }
+
+    navigate('/dashboard')
+  }
+
+  async function handleForgotPassword() {
+    if (!form.email) { setError('Digite seu e-mail acima primeiro.'); return }
+    const { error } = await supabase.auth.resetPasswordForEmail(form.email)
+    if (error) setError(error.message)
+    else setError('')
+    alert(`Link de redefinição enviado para ${form.email}`)
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 text-xl font-black mb-6" style={{ color: '#1A2744' }}>
             <span>💼</span> QueroTrampo
@@ -31,6 +56,12 @@ export default function Login() {
           <h1 className="text-2xl font-black mb-1" style={{ color: '#1A2744' }}>Bem-vindo de volta</h1>
           <p className="text-gray-500 text-sm">Entre na sua conta para continuar.</p>
         </div>
+
+        {confirmacaoPendente && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 text-blue-700 text-sm mb-4 text-center">
+            📧 Cadastro realizado! Confirme seu e-mail para ativar a conta.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-4">
@@ -47,7 +78,8 @@ export default function Login() {
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-sm font-medium text-gray-700">Senha</label>
-                <button type="button" className="text-xs hover:underline" style={{ color: '#FF6B00' }}>
+                <button type="button" onClick={handleForgotPassword}
+                  className="text-xs hover:underline" style={{ color: '#FF6B00' }}>
                   Esqueci a senha
                 </button>
               </div>

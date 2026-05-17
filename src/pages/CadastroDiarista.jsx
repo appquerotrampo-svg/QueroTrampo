@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { SERVICE_CATEGORIES } from '../lib/categories'
+import { supabase } from '../lib/supabase'
 
 const STATES_BR = [
   'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS',
@@ -9,7 +10,7 @@ const STATES_BR = [
 
 export default function CadastroDiarista() {
   const navigate = useNavigate()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(1) // 1 | 2 | 3 | 'confirmacao'
   const [form, setForm] = useState({
     nome: '', telefone: '', email: '', senha: '',
     cidade: '', estado: '', cep: '',
@@ -38,11 +39,71 @@ export default function CadastroDiarista() {
     }
     setLoading(true)
     setError('')
-    // TODO: Supabase auth + insert
-    setTimeout(() => {
+
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.senha,
+      options: { data: { nome: form.nome } },
+    })
+
+    if (authError) {
+      setError(authError.message === 'User already registered'
+        ? 'Este e-mail já está cadastrado.'
+        : authError.message)
       setLoading(false)
-      navigate('/')
-    }, 1200)
+      return
+    }
+
+    const userId = authData.user.id
+
+    const { error: userError } = await supabase.from('usuarios').insert({
+      id: userId,
+      nome: form.nome,
+      email: form.email,
+      telefone: form.telefone,
+      tipo: 'diarista',
+      cidade: form.cidade,
+    })
+
+    if (userError) { setError(userError.message); setLoading(false); return }
+
+    const { error: diaError } = await supabase.from('diaristas').insert({
+      usuario_id: userId,
+      categorias: form.categorias,
+      valor_diaria: parseFloat(form.valorDiaria) || null,
+      bio: form.bio || null,
+    })
+
+    if (diaError) { setError(diaError.message); setLoading(false); return }
+
+    await supabase.from('carteira').insert({ usuario_id: userId, saldo: 0 })
+
+    setLoading(false)
+
+    if (authData.session) {
+      navigate('/dashboard')
+    } else {
+      setStep('confirmacao')
+    }
+  }
+
+  if (step === 'confirmacao') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-md w-full text-center">
+          <div className="text-5xl mb-4">📧</div>
+          <h2 className="text-xl font-black mb-2" style={{ color: '#1A2744' }}>Confirme seu e-mail</h2>
+          <p className="text-gray-500 text-sm mb-6">
+            Enviamos um link de confirmação para <strong>{form.email}</strong>.<br />
+            Clique no link para ativar sua conta e começar a trabalhar.
+          </p>
+          <Link to="/login" className="inline-block px-6 py-3 rounded-xl font-bold text-white text-sm"
+            style={{ backgroundColor: '#FF6B00' }}>
+            Ir para o Login
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
